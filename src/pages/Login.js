@@ -37,6 +37,8 @@ export default function Login() {
       
       // Transition to dashboard upon success
       setTimeout(() => {
+          // This saves the ID from your Spring Boot response into the browser!
+          localStorage.setItem('userId', data.userId);
           navigate('/dashboard');
       }, 800); // Waits 1.5 seconds before changing pages
     } catch (err) {
