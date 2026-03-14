@@ -82,10 +82,9 @@ export default function Login() {
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               
               <div>
-                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: '#555', fontWeight: '600' }}>Username / Email</label>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: '#555', fontWeight: '600' }}>Username</label>
                 <input 
                   type="text" 
-                  placeholder="your.username@example.com" 
                   value={username} 
                   onChange={(e) => setUsername(e.target.value)} 
                   required 
@@ -98,7 +97,6 @@ export default function Login() {
                 <div style={{ position: 'relative' }}>
                   <input 
                     type={showPassword ? "text" : "password"} 
-                    placeholder="••••••••" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     required 

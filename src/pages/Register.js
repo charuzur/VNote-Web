@@ -83,12 +83,12 @@ export default function Register() {
             
             <div>
               <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: '#555', fontWeight: '600' }}>Full Name</label>
-              <input type="text" placeholder="John Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box', outlineColor: '#007bff', fontSize: '14px' }} />
+              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box', outlineColor: '#007bff', fontSize: '14px' }} />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: '#555', fontWeight: '600' }}>Username / Email</label>
-              <input type="text" placeholder="john.doe@example.com" value={username} onChange={(e) => setUsername(e.target.value)} required style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box', outlineColor: '#007bff', fontSize: '14px' }} />
+              <label style={{ display: 'block', fontSize: '12px', marginBottom: '8px', color: '#555', fontWeight: '600' }}>Username</label>
+              <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: '1px solid #e0e0e0', boxSizing: 'border-box', outlineColor: '#007bff', fontSize: '14px' }} />
             </div>
             
             <div>
@@ -96,7 +96,6 @@ export default function Register() {
               <div style={{ position: 'relative' }}>
                 <input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   required 
@@ -117,7 +116,6 @@ export default function Register() {
               <div style={{ position: 'relative' }}>
                 <input 
                   type={showConfirmPassword ? "text" : "password"} 
-                  placeholder="••••••••" 
                   value={confirmPassword} 
                   onChange={(e) => setConfirmPassword(e.target.value)} 
                   required 
