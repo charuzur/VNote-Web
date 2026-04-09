@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import ConfirmationModal from '../components/ConfirmationModal'; // Adjust path if needed!
+import NavBar from '../components/NavBar';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -24,6 +26,16 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Custom Modal State
+  const [modal, setModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    isDanger: false,
+    onConfirm: null
+  });
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -71,8 +83,111 @@ export default function Profile() {
     setTimeout(() => setMessage({ type: '', text: '' }), 4000);
   };
 
-  const handleProfileUpdate = async (e) => {
+  // --- NEW: SAFETY CHECKS FOR BACKING OUT ---
+
+  const hasUnsavedProfileChanges = () => {
+    return activeForm === 'editProfile' && (editFullName !== fullName || editUsername !== username);
+  };
+
+  // Triggers when clicking "Back to Dashboard"
+  const handleBackNavigation = (e) => {
     e.preventDefault();
+    if (hasUnsavedProfileChanges()) {
+      setModal({
+        isOpen: true,
+        title: 'Discard Unsaved Changes?',
+        message: 'You have unsaved changes in your profile. Are you sure you want to leave? Your changes will be lost.',
+        confirmText: 'Discard Changes',
+        isDanger: true,
+        onConfirm: () => navigate('/dashboard')
+      });
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  // Triggers when clicking "Cancel" specifically inside the Edit Profile form
+  const handleCancelEditProfile = () => {
+    if (hasUnsavedProfileChanges()) {
+      setModal({
+        isOpen: true,
+        title: 'Discard Unsaved Changes?',
+        message: 'Are you sure you want to cancel? Any unsaved profile edits will be lost.',
+        confirmText: 'Discard Changes',
+        isDanger: true,
+        onConfirm: () => {
+          setModal({ ...modal, isOpen: false });
+          setActiveForm(null);
+        }
+      });
+    } else {
+      setActiveForm(null);
+    }
+  };
+
+
+  // --- MODAL INTENTS ---
+
+  const handleProfileUpdateIntent = (e) => {
+    e.preventDefault();
+    if (!editFullName.trim() || !editUsername.trim()) return;
+
+    setModal({
+      isOpen: true,
+      title: 'Save Profile Changes?',
+      message: 'Are you sure you want to update your profile information?',
+      confirmText: 'Save Changes',
+      isDanger: false,
+      onConfirm: () => executeProfileUpdate()
+    });
+  };
+
+  const handlePasswordUpdateIntent = (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      showMessage('error', 'New passwords do not match!');
+      return;
+    }
+
+    setModal({
+      isOpen: true,
+      title: 'Change Password?',
+      message: 'Are you sure you want to change your password? You will need to use your new password the next time you log in.',
+      confirmText: 'Update Password',
+      isDanger: false,
+      onConfirm: () => executePasswordUpdate()
+    });
+  };
+
+  const handleLogoutIntent = () => {
+    setModal({
+      isOpen: true,
+      title: 'Log Out?',
+      message: 'Are you sure you want to log out of your account?',
+      confirmText: 'Log Out',
+      isDanger: true,
+      onConfirm: () => executeLogout()
+    });
+  };
+
+  const handleDeleteAccountIntent = () => {
+    setModal({
+      isOpen: true,
+      title: 'Delete Account?',
+      message: 'Are you sure you want to permanently delete your account? This action cannot be undone and you will lose all your notes.',
+      confirmText: 'Delete Account',
+      isDanger: true,
+      onConfirm: () => {
+        setModal({ ...modal, isOpen: false });
+        showMessage('error', 'Delete account functionality to be implemented!');
+      }
+    });
+  };
+
+  // --- ACTUAL EXECUTIONS ---
+
+  const executeProfileUpdate = async () => {
+    setModal({ ...modal, isOpen: false });
     setIsLoading(true);
     const userId = localStorage.getItem('userId');
 
@@ -80,18 +195,14 @@ export default function Profile() {
       const response = await fetch(`http://localhost:8080/api/v1/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        // Send the temporary edit variables to the backend
         body: JSON.stringify({ fullName: editFullName, username: editUsername }),
       });
 
       if (response.ok) {
         showMessage('success', 'Profile updated successfully!');
-        
-        // ONLY update the official display text after success!
         setFullName(editFullName);
         setUsername(editUsername);
         
-        // Update initials dynamically
         if (editFullName) {
           const nameParts = editFullName.split(' ');
           setInitials(nameParts.length > 1 
@@ -113,13 +224,8 @@ export default function Profile() {
     }
   };
 
-  const handlePasswordUpdate = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      showMessage('error', 'New passwords do not match!');
-      return;
-    }
-
+  const executePasswordUpdate = async () => {
+    setModal({ ...modal, isOpen: false });
     setIsLoading(true);
     const userId = localStorage.getItem('userId');
 
@@ -144,6 +250,12 @@ export default function Profile() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const executeLogout = () => {
+    setModal({ ...modal, isOpen: false });
+    localStorage.removeItem('userId');
+    navigate('/login');
   };
 
   const handleFileChange = async (e) => {
@@ -173,57 +285,39 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('userId');
-    navigate('/login');
-  };
-
   return (
-    <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: '"Inter", "Segoe UI", sans-serif' }}>
+    <div style={{ backgroundColor: '#f8f9fa', minHeight: '100vh', fontFamily: '"Inter", "Segoe UI", sans-serif', position: 'relative' }}>
       
+      {/* INJECT THE REUSABLE MODAL HERE */}
+      <ConfirmationModal 
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        confirmText={modal.confirmText}
+        isDanger={modal.isDanger}
+        onConfirm={modal.onConfirm}
+        onCancel={() => setModal({ ...modal, isOpen: false })}
+      />
+
       {/* Top Navigation Bar */}
-      <header style={{ backgroundColor: '#fff', borderBottom: '1px solid #eaeaea', padding: '12px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        
-        <Link to="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ backgroundColor: '#007bff', color: '#ffffff', borderRadius: '6px', padding: '4px 10px', fontWeight: 'bold', fontSize: '18px' }}>V</div>
-          <h2 style={{ margin: 0, fontSize: '20px', color: '#1a1a1a', fontWeight: 'bold' }}>VNote</h2>
-        </Link>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div 
-            onClick={() => navigate('/profile')}
-            title="Profile Settings"
-            style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#007bff', color: '#fff', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', overflow: 'hidden', border: '2px solid #fff', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}
-          >
-            {profileImage ? (
-              <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              initials
-            )}
-          </div>
-
-          <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            Logout
-          </button>
-        </div>
-      </header>
+      <NavBar 
+        profileImage={profileImage}
+        initials={initials}
+        onLogout={handleLogoutIntent}
+      />
 
       {/* Main Content Container */}
       <main style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
         
         <div style={{ marginBottom: '20px', paddingLeft: '20px' }}>
-          <Link to="/dashboard" style={{ color: '#666', textDecoration: 'none', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
+          {/* CHANGED THIS FROM <Link> to a <button> so it intercepts navigation! */}
+          <button onClick={handleBackNavigation} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#666', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
             Back to Dashboard
-          </Link>
+          </button>
         </div>
 
         {message.text && (
@@ -308,7 +402,6 @@ export default function Profile() {
             {activeForm === null && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
                 <button 
-                  // When clicking Edit Profile, we preload the form variables!
                   onClick={() => {
                     setEditFullName(fullName);
                     setEditUsername(username);
@@ -333,18 +426,19 @@ export default function Profile() {
             )}
 
             {activeForm === 'editProfile' && (
-              <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', animation: 'fadeIn 0.3s ease-in-out' }}>
+              <form onSubmit={handleProfileUpdateIntent} style={{ display: 'flex', flexDirection: 'column', gap: '15px', animation: 'fadeIn 0.3s ease-in-out' }}>
                 <input type="text" value={editFullName} onChange={(e) => setEditFullName(e.target.value)} placeholder="Full Name" required style={{ width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', outlineColor: '#007bff' }} />
                 <input type="text" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} placeholder="Username" required style={{ width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', outlineColor: '#007bff' }} />
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button type="button" onClick={() => setActiveForm(null)} style={{ flex: 1, padding: '10px', backgroundColor: '#f4f5f7', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Cancel</button>
+                  {/* CHANGED THIS to trigger the new handleCancelEditProfile function */}
+                  <button type="button" onClick={handleCancelEditProfile} style={{ flex: 1, padding: '10px', backgroundColor: '#f4f5f7', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Cancel</button>
                   <button type="submit" disabled={isLoading} style={{ flex: 1, padding: '10px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: isLoading ? 'not-allowed' : 'pointer' }}>Save Changes</button>
                 </div>
               </form>
             )}
 
             {activeForm === 'changePassword' && (
-              <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '15px', animation: 'fadeIn 0.3s ease-in-out' }}>
+              <form onSubmit={handlePasswordUpdateIntent} style={{ display: 'flex', flexDirection: 'column', gap: '15px', animation: 'fadeIn 0.3s ease-in-out' }}>
                 <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} placeholder="Old Password" required style={{ width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', outlineColor: '#007bff' }} />
                 <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="New Password" required style={{ width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', outlineColor: '#007bff' }} />
                 <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm New Password" required style={{ width: '100%', boxSizing: 'border-box', padding: '12px', fontSize: '14px', border: '1px solid #ddd', borderRadius: '8px', outlineColor: '#007bff' }} />
@@ -363,7 +457,7 @@ export default function Profile() {
                 <span style={{ fontSize: '11px', color: '#dc3545', fontWeight: 'bold', letterSpacing: '1px' }}>DANGER ZONE</span>
                 <div style={{ flex: 1, height: '1px', backgroundColor: '#f8d7da' }}></div>
              </div>
-            <button onClick={() => alert("Delete account functionality to be implemented!")} style={{ width: '100%', padding: '12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(220,53,69,0.2)' }}>
+            <button onClick={handleDeleteAccountIntent} style={{ width: '100%', padding: '12px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(220,53,69,0.2)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
