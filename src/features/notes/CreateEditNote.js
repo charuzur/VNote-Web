@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import ConfirmationModal from '../components/ConfirmationModal';
-import NavBar from '../components/NavBar';
+import NavBar from '../../shared/components/NavBar';
+import ConfirmationModal from '../../shared/components/ConfirmationModal';
 
 export default function CreateEditNote() {
   const navigate = useNavigate();

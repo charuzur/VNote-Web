@@ -1,5 +1,5 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import Logo from './Logo'; // Make sure this path is correct!
+import Logo from './Logo';
 
 export default function NavBar({ 
   profileImage, 

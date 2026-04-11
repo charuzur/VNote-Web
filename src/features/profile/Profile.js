@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ConfirmationModal from '../components/ConfirmationModal'; // Adjust path if needed!
-import NavBar from '../components/NavBar';
+import NavBar from '../../shared/components/NavBar';
+import ConfirmationModal from '../../shared/components/ConfirmationModal';
 
 export default function Profile() {
   const navigate = useNavigate();

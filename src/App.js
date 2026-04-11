@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import CreateEditNote from './pages/CreateEditNote'; // Add this import
-import Profile from './pages/Profile';
+import Login from './features/auth/Login';
+import Register from './features/auth/Register';
+import Dashboard from './features/notes/Dashboard';
+import CreateEditNote from './features/notes/CreateEditNote';
+import Profile from './features/profile/Profile';
 
 function App() {
   return (

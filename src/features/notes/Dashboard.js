@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import ConfirmationModal from '../components/ConfirmationModal'; // Import our new reusable modal!
-import NavBar from '../components/NavBar';
+import NavBar from '../../shared/components/NavBar';
+import ConfirmationModal from '../../shared/components/ConfirmationModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
