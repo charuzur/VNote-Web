@@ -44,7 +44,7 @@ export default function Profile() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/v1/users/${userId}`)
+    fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}`)
       .then(res => res.json())
       .then(userData => {
         setFullName(userData.fullName || '');
@@ -72,7 +72,7 @@ export default function Profile() {
       })
       .catch(err => console.error("Error fetching profile:", err));
 
-    fetch(`http://localhost:8080/api/v1/notes/user/${userId}`)
+    fetch(`https://vnote-backend.onrender.com/api/v1/notes/user/${userId}`)
       .then(res => res.json())
       .then(data => setTotalNotes(data.length || 0))
       .catch(err => console.error("Error fetching notes count:", err));
@@ -192,7 +192,7 @@ export default function Profile() {
     const userId = localStorage.getItem('userId');
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/users/${userId}`, {
+      const response = await fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName: editFullName, username: editUsername }),
@@ -230,7 +230,7 @@ export default function Profile() {
     const userId = localStorage.getItem('userId');
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/users/${userId}/password`, {
+      const response = await fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ oldPassword: oldPassword, newPassword: newPassword }), 
@@ -267,7 +267,7 @@ export default function Profile() {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/users/${userId}/photo`, {
+      const response = await fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}/photo`, {
         method: 'POST',
         body: formData,
       });

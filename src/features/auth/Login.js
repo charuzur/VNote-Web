@@ -23,7 +23,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/auth/login', {
+      const response = await fetch('https://vnote-backend.onrender.com/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),

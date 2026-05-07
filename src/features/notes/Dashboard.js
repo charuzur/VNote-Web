@@ -32,13 +32,13 @@ export default function Dashboard() {
     }
 
     // Fetch Notes
-    fetch(`http://localhost:8080/api/v1/notes/user/${userId}`)
+    fetch(`https://vnote-backend.onrender.com/api/v1/notes/user/${userId}`)
       .then(res => res.json())
       .then(data => setNotes(data))
       .catch(err => console.error("Error fetching notes:", err));
 
     // Fetch User Profile
-    fetch(`http://localhost:8080/api/v1/users/${userId}`)
+    fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}`)
       .then(res => res.json())
       .then(userData => {
         if (userData && userData.fullName) {
@@ -79,7 +79,7 @@ export default function Dashboard() {
   const executeDelete = async (noteId) => {
     setModal({ ...modal, isOpen: false }); 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/notes/${noteId}`, {
+      const response = await fetch(`https://vnote-backend.onrender.com/api/v1/notes/${noteId}`, {
         method: 'DELETE'
       });
       

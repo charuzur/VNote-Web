@@ -44,7 +44,7 @@ export default function CreateEditNote() {
       return;
     }
 
-    fetch(`http://localhost:8080/api/v1/users/${userId}`)
+    fetch(`https://vnote-backend.onrender.com/api/v1/users/${userId}`)
       .then(res => res.json())
       .then(userData => {
         if (userData && userData.fullName) {
@@ -113,8 +113,8 @@ export default function CreateEditNote() {
 
     try {
       const url = editingNote 
-        ? `http://localhost:8080/api/v1/notes/${editingNote.noteId}` 
-        : 'http://localhost:8080/api/v1/notes';
+        ? `https://vnote-backend.onrender.com/api/v1/notes/${editingNote.noteId}` 
+        : 'https://vnote-backend.onrender.com/api/v1/notes';
         
       const method = editingNote ? 'PUT' : 'POST';
 
